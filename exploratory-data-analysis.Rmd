@@ -11,7 +11,7 @@ library(ggplot2)
 theme_set(theme_bw())
 ```
 
-Breve descrição.
+EDA das avaliações humanas referente as reclamações direcionadas a ANAC e ao INSS.
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -58,7 +58,7 @@ reclamacoes %>%
   facet_grid(orgao ~ .)
 ```
 
-Percebemos que as reclamações do INSS são em média menores do que as reclamações da anac.
+Percebemos que as reclamações do INSS são em média menores do que as reclamações da ANAC.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 avaliacoes <- avaliacoes %>% 
@@ -82,6 +82,8 @@ avaliacoes %>%
   filter((id %in% 1:5 ))
 ```
 
+As avaliações estão dentro do intervalo permitido.
+
 ### 3.2. Das avaliações realizadas, quantas foram feitas para cada nível de insatisfação?
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 (ggplot(avaliacoes, aes(x=insatisfacao))
@@ -90,7 +92,7 @@ avaliacoes %>%
 )
 ```
 
-**Texto sobre o gráfico** asdasdadklasd
+Temos um número similar de avaliações para cada nível de insatisfação.
 
 ### 3.3. Quantas avaliações foram feitas por reclamação?
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -100,7 +102,7 @@ avaliacoes %>%
   ggplot(aes("reclamacoes", n)) + 
   geom_jitter(width = .05, alpha = .7)
 ```
-    
+
 ### 3.4. Em média, quantas avaliações por reclamação?
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 avaliacoes %>% 
@@ -111,6 +113,8 @@ avaliacoes %>%
             mediana = median(n))
 ```
 
+Cada reclamação recebeu um número de avaliações próximo das restantes. Isso se verifica analisando o gráfico do tópico 3.3 que tem apenas uma anomalia.
+
 ### 3.5. Qual o número de revisores por reclamação?
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 avaliacoes %>% group_by(id) %>% 
@@ -118,6 +122,7 @@ avaliacoes %>% group_by(id) %>%
   ggplot(aes(x=reorder(id, count), y=count)) + geom_bar(stat = "identity")
 ```
 
+Cada reclamação foi avaliada por um intervalo de 5 à 7 pessoas, com exceção de uma que recebeu 3 avaliações.
 
 ## 4. Será que há consenso entre as avaliações de cada reclamação?
 ### 4.1. Níveis de discordância X id da reclamação
@@ -200,3 +205,5 @@ mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
 colnames(mat) <- c("cor_anac", "cor_inss")
 mat
 ```
+
+Nenhuma das análises do tópico 5 apresentou alguma forte correlação entre as variáveis testadas.
