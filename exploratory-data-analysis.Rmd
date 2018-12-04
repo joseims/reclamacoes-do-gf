@@ -1,0 +1,202 @@
+---
+title: "Análise Exploratória dos Dados"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+Breve descrição.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes <- read_csv("data/3-avaliacao-humana/avaliacoes-20181030.csv")
+reclamacoes <-  read_csv("data/1-reclamacoes-selecionadas/reclamacoes-avaliadas.csv")
+```
+
+## 1. Realizando tratamento nos dados
+### 1.1. Inserindo colunas comprimento da reclamacao e do titulo
+```{r}
+reclamacoes <- reclamacoes %>% mutate(reclamacao.length = str_length(reclamacao),
+                                      titulo.length = str_length(titulo))
+```
+
+### 1.4. Insere coluna com número de letras em capslock
+```{r}
+reclamacoes$numero.de.capslock <- str_count(reclamacoes$reclamacao, "\\b[A-Z]{2,}\\b")
+```
+
+### 1.5. Insere coluna com número de exclamações no titulo e na reclamação
+```{r}
+reclamacoes$numero.de.exclamacoes <- str_count(reclamacoes$reclamacao, "!")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# cria um data frame para cada orgão
+reclamacoes_anac <- filter(reclamacoes, reclamacoes$orgao=="anac-agencia-nacional-de-aviacao-civil")
+reclamacoes_inss <- filter(reclamacoes, reclamacoes$orgao=="inss-ministerio-da-previdencia-social")
+```
+
+
+## 2. O formato das distribuições dos tamanhos dos títulos e das reclamações por órgão
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+reclamacoes %>% 
+  filter(complete.cases(.)) %>% 
+  ggplot(aes(fill = orgao, x = titulo.length), na.rm = TRUE) + 
+  geom_histogram(binwidth = 2, na.rm = TRUE) + 
+  facet_grid(orgao ~ .)
+
+reclamacoes %>% 
+  filter(complete.cases(.)) %>% 
+  ggplot(aes(fill = orgao, x = reclamacao.length), na.rm = TRUE) + 
+  geom_histogram(binwidth = 50, na.rm = TRUE) + 
+  facet_grid(orgao ~ .)
+```
+
+Percebemos que as reclamações do INSS são em média menores do que as reclamações da anac.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes <- avaliacoes %>% 
+              select(avaliador = `Matrícula`, 
+                      id = `ID da reclamação`, 
+                       insatisfacao = `Grau de insatisfação`)
+
+avaliacoes_por_id <- avaliacoes %>% group_by(id) %>% 
+    summarise(range = max(insatisfacao) - min(insatisfacao),
+              mediana = median(insatisfacao),media = mean(insatisfacao),
+              maximo =  max(insatisfacao), minimo = min(insatisfacao))
+
+reclamacoes %>% inner_join(avaliacoes_por_id, by = "id") %>% View()
+```
+
+
+## 3. Confiabilidade das avaliações humanas
+### 3.1. Alguma avaliação foge dos valores de 1 a 5?
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% 
+  filter((id %in% 1:5 ))
+```
+
+### 3.2. Das avaliações realizadas, quantas foram feitas para cada nível de insatisfação?
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(avaliacoes, aes(x=insatisfacao))
+    +geom_bar(width=0.5)
+    +labs(title="Número de avaliações por grau de insatisfação", x="Grau de insatisfação", y="Quantidade de avaliações")
+)
+```
+
+**Texto sobre o gráfico** asdasdadklasd
+
+### 3.3. Quantas avaliações foram feitas por reclamação?
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% 
+  group_by(id) %>% 
+  count() %>% 
+  ggplot(aes("reclamacoes", n)) + 
+  geom_jitter(width = .05, alpha = .7)
+```
+    
+### 3.4. Em média, quantas avaliações por reclamação?
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% 
+  group_by(id) %>% 
+  count() %>%
+  ungroup() %>% 
+  summarise(media = mean(n), 
+            mediana = median(n))
+```
+
+### 3.5. Qual o número de revisores por reclamação?
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% group_by(id) %>% 
+  summarize(count=n()) %>% 
+  ggplot(aes(x=reorder(id, count), y=count)) + geom_bar(stat = "identity")
+```
+
+
+## 4. Será que há consenso entre as avaliações de cada reclamação?
+### 4.1. Níveis de discordância X id da reclamação
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% group_by(id) %>% 
+  summarise(range = max(insatisfacao) - min(insatisfacao),
+            mediana = median(insatisfacao)) %>% 
+  ggplot(aes(x=id, y=range, colour = id)) + geom_point() +
+  geom_jitter(height = 0.05, alpha = .4)
+```
+
+Vemos que para algums reclamações houve uma discordância de até 3 níveis de insatisfação
+
+### 4.2. Níveis de discordância X nível médio de insatisfação
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% group_by(id) %>% 
+  summarise(range = max(insatisfacao) - min(insatisfacao),
+            mediana = median(insatisfacao)) %>% 
+  ggplot(aes(x=mediana, y=range)) + geom_point() +
+  geom_jitter(height = 0.05, alpha = .4)
+```
+
+Não parece haver relação entre essas variáveis
+
+### 4.3. A maioria das avaliações tem nível de discordância de 1 e 2
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% group_by(id) %>% 
+  summarise(range = max(insatisfacao) - min(insatisfacao),
+            mediana = median(insatisfacao)) %>% 
+  group_by(range) %>% count()
+```
+
+### 4.4. Quantas reclamações tem discordância maior que 2?
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+avaliacoes %>% group_by(id) %>% 
+  summarise(range = max(insatisfacao) - min(insatisfacao)) %>% 
+  filter(range > 2) %>% count()
+```
+
+
+## 5. Será que o tamanho das reclamações, quantidade de exclamações e de letras maiúsculas tem alguma relação com o nível de insatisfação?
+### 5.1. Ver proporção do tamanho da reclamação para cada nível de insatisfação em relação a ANAC e INSS
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes, aes(x=mediana, y=reclamacao.length, colour=orgao))
+    +geom_point()
+    +labs(title="Tamanho das reclamações por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de caracteres da reclamação")
+    +facet_grid(orgao ~ .)
+)
+cor_anac <- cor(reclamacoes_anac$mediana, reclamacoes_anac$reclamacao.length)
+cor_inss <- cor(reclamacoes_inss$mediana, reclamacoes_inss$reclamacao.length)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
+
+### 5.2. Ver proporção da quantidade de exclamações pra cada nível de insatisfação em relação a ANAC e INSS
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes, aes(x=mediana, y=numero.de.exclamacoes, colour=orgao))
+    +geom_point()
+    +labs(title="Quantidade de exclamações por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de exclamações")
+    +facet_grid(orgao ~ .)
+)
+cor_anac <- cor(reclamacoes_anac$mediana, reclamacoes_anac$numero.de.exclamacoes)
+cor_inss <- cor(reclamacoes_inss$mediana, reclamacoes_inss$numero.de.exclamacoes)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
+
+### 5.3. Ver proporção da quantidade de letras maiúsculas pra cada nível de insatisfação em relação a ANAC e INSS
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes, aes(x=mediana, y=numero.de.capslock, colour=orgao))
+    +geom_point() 
+    +labs(title="Quantidade de letras em caixa alta por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de palavras em caixa alta")
+    +facet_grid(orgao ~ .)
+)
+cor_anac <- cor(reclamacoes_anac$mediana, reclamacoes_anac$numero.de.capslock)
+cor_inss <- cor(reclamacoes_inss$mediana, reclamacoes_inss$numero.de.capslock)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
