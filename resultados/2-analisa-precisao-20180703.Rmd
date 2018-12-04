@@ -38,13 +38,14 @@ reclamacoes_l %>% View()
 
 ```
 
-Converte polaridades para escala 0-5
+
 
 ```{r}
+library(scales)
 # Faça você mesmo. Crie a variável polaridade_normalizada
-# reclamacoes_l = reclamacoes_l %>% 
-#     group_by(lexico) %>% 
-#     mutate(polaridade_normalizada = ALGOAQUI)
+reclamacoes_l = reclamacoes_l %>% 
+    group_by(lexico) %>% 
+    mutate(polaridade_normalizada =round(rescale(polaridade,to=c(5,1)))
 ```
 
 Calcula o erro (SSE) por reclamação
@@ -59,8 +60,13 @@ reclamacoes_l = reclamacoes_l %>%
 
 Inicial. Faça os gráficos a mais que achar necessário para entender os dados que temos de resultado. Lembrando de nossa questão: Quão eficazes são os métodos de análise de sentimento baseados em léxicos para estimar o nível de insatisfação de reclamações recebidas pelo reclameaqui do governo federal? Existe um exemplo de EDA no repositório. Uma decisão importante a ser usada é se vamos considerar as avaliações humanas onde houve muita discordância sobre o nível de insatisfação.
 
+
+Ver diferença entre os 2 léxicos (ERRO POR NORMALIZAÇÃO CONJUNTA). Ver dados dos EDA humano.
+
+
 ###Como avaliar a eficácia dos métodos?  
 Uma medida interessante da eficiência desses métodos é calcular a soma dos erros ao quadrado (SSE) considerando o que o método definiu como a polaridade_normalizada e o que a avaliação humana definiu como a insatisfação.
+SSE de cada léxico
 
 ```{r}
 reclamacoes %>% 
