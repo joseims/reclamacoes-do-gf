@@ -208,8 +208,18 @@ Uma medida interessante da eficiência desses métodos é calcular a soma dos er
 
 ```{r}
 #vuvuzela 
-reclamacoes %>% 
-    ggplot(aes(x = sentimento_op30, y = sentimento_sent)) + 
+sent <- reclamacoes_l_sent %>% 
+    select(id,polaridade_normalizada)
+colnames(sent) <- c("etc","id","sent")
+op30 <- reclamacoes_l_op30 %>% 
+    select(id,polaridade_normalizada)
+colnames(op30) <- c("etc1","id","op30")
+
+data = sent %>% 
+    left_join(op30, by = "id")
+
+data %>% 
+    ggplot(aes(x = op30, y = sent)) + 
     geom_abline(slope = 1, intercept = 0, color = "grey") + 
     geom_count(alpha = .7)
 ```
