@@ -175,7 +175,7 @@ cor_anac <- cor(reclamacoes_anac$mediana, reclamacoes_anac$reclamacao.length)
 cor_inss <- cor(reclamacoes_inss$mediana, reclamacoes_inss$reclamacao.length)
 mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
 colnames(mat) <- c("cor_anac", "cor_inss")
-mat
+View(mat)
 ```
 
 ### 5.2. Ver proporção da quantidade de exclamações pra cada nível de insatisfação em relação a ANAC e INSS

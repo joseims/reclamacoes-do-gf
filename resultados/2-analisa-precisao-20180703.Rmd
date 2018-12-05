@@ -1,6 +1,8 @@
 ---
-title: "Análise da precisão"
-output: html_notebook
+title: "AnÃ¡lise da precisÃ£o"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
@@ -42,10 +44,9 @@ reclamacoes_l %>% View()
 
 ```{r}
 library(scales)
-# Faça você mesmo. Crie a variável polaridade_normalizada
 reclamacoes_l = reclamacoes_l %>% 
     group_by(lexico) %>% 
-    mutate(polaridade_normalizada =round(rescale(polaridade,to=c(5,1)))
+    mutate(polaridade_normalizada = round(rescale(polaridade, to=c(5,1)))) 
 ```
 
 Calcula o erro (SSE) por reclamação
@@ -58,21 +59,159 @@ reclamacoes_l = reclamacoes_l %>%
 
 ## EDA
 
-Inicial. Faça os gráficos a mais que achar necessário para entender os dados que temos de resultado. Lembrando de nossa questão: Quão eficazes são os métodos de análise de sentimento baseados em léxicos para estimar o nível de insatisfação de reclamações recebidas pelo reclameaqui do governo federal? Existe um exemplo de EDA no repositório. Uma decisão importante a ser usada é se vamos considerar as avaliações humanas onde houve muita discordância sobre o nível de insatisfação.
+Inicial. Faça os gráficos a mais que achar necessário para entender os dados que temos de resultado. Lembrando de nossa questão: Quão eficazes são os métodos de análise de sentimento baseados em léxicos para estimar o nível de insatisfação de reclamações recebidas pelo reclameaqui do governo federal? Existe um exemplo de EDA no repositório. 
+
+Decidimos repetir as perguntas feitas na exploração do dado com o experimento humano. Vamos verificar os resultados para cada um dos 2 léxicos independentemente para que comparemos o resultado deles com o do experimento humano no artigo.
+
+Primeiro vamos dividir os 2 léxicos, mas antes vamos pegar as váriaveis necessárias.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+reclamacoes_l$numero.de.exclamacoes <- str_count(reclamacoes_l$reclamacao, "!")
+reclamacoes_l$numero.de.capslock <- str_count(reclamacoes_l$reclamacao, "\\b[A-Z]{2,}\\b")
+reclamacoes_l$reclamacao.length <- str_length(reclamacoes_l$reclamacao)
+
+reclamacoes_l_op30 <- filter(reclamacoes_l, lexico=="sentimento_op30")
+reclamacoes_l_sent <- filter(reclamacoes_l, lexico=="sentimento_sent")
+
+reclamacoes_l_op30_inss <- filter(reclamacoes_l_op30, orgao=="inss-ministerio-da-previdencia-social")
+reclamacoes_l_sent_inss <- filter(reclamacoes_l_sent, orgao=="inss-ministerio-da-previdencia-social")
+
+reclamacoes_l_op30_anac <- filter(reclamacoes_l_op30, orgao=="anac-agencia-nacional-de-aviacao-civil")
+reclamacoes_l_sent_anac <- filter(reclamacoes_l_sent, orgao=="anac-agencia-nacional-de-aviacao-civil")
 
 
-Ver diferença entre os 2 léxicos (ERRO POR NORMALIZAÇÃO CONJUNTA). Ver dados dos EDA humano.
+```
 
+
+### Pergunta 1. Ver proporção do tamanho da reclamação para cada nível de insatisfação em relação a ANAC e INSS
+
+Léxico sentimento_op30 - Veremos a correlação entre o tamanho da reclamação e a grau de instatisfação com esse léxico
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+(ggplot(reclamacoes_l_op30, aes(x=polaridade_normalizada, y=comprimento_reclamacao, colour=orgao))
+    +geom_point()
+    +labs(title="Tamanho das reclamações por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de caracteres da reclamação")
+    +facet_grid(orgao ~ .)
+)
+
+cor_anac <- cor(reclamacoes_l_op30_anac$polaridade_normalizada, 
+                reclamacoes_l_op30_anac$reclamacao.length)
+cor_inss <- cor(reclamacoes_l_op30_inss$polaridade_normalizada, 
+                reclamacoes_l_op30_inss$reclamacao.length)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+View(mat)
+```
+INTERPRETAÇÃO:
+
+Léxico sentimento_sent - Veremos a correlação entre o tamanho da reclamação e a grau de instatisfação com esse léxico
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes_l_sent, aes(x=polaridade_normalizada, y=comprimento_reclamacao, colour=orgao))
+    +geom_point()
+    +labs(title="Tamanho das reclamações por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de caracteres da reclamação")
+    +facet_grid(orgao ~ .)
+)
+
+cor_anac <- cor(reclamacoes_l_sent_anac$polaridade_normalizada, 
+                reclamacoes_l_sent_anac$reclamacao.length)
+cor_inss <- cor(reclamacoes_l_sent_inss$polaridade_normalizada, 
+                reclamacoes_l_sent_inss$reclamacao.length)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+View(mat)
+```
+
+INTERPRETAÇÃO
+### Pergunta 2. Ver proporção da quantidade de exclamações pra cada nível de insatisfação em relação a ANAC e INSS
+
+Para a lexico_op30 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes_l_op30, aes(x=polaridade_normalizada, y=numero.de.exclamacoes, colour=orgao))
+    +geom_point()
+    +labs(title="Quantidade de exclamações por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de exclamações")
+    +facet_grid(orgao ~ .)
+)
+
+cor_anac <- cor(reclamacoes_l_op30_anac$polaridade_normalizada,
+                reclamacoes_l_op30_anac$numero.de.exclamacoes)
+
+cor_inss <- cor(reclamacoes_l_op30_inss$polaridade_normalizada, 
+                reclamacoes_l_op30_inss$numero.de.exclamacoes)
+
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
+INTERPRETAÇÃO:
+
+Para léxico_sent 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes_l_sent, aes(x=polaridade_normalizada, y=numero.de.exclamacoes, colour=orgao))
+    +geom_point()
+    +labs(title="Quantidade de exclamações por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de exclamações")
+    +facet_grid(orgao ~ .)
+)
+
+cor_anac <- cor(reclamacoes_l_sent_anac$polaridade_normalizada,
+                reclamacoes_l_sent_anac$numero.de.exclamacoes)
+
+cor_inss <- cor(reclamacoes_l_sent_inss$polaridade_normalizada, 
+                reclamacoes_l_sent_inss$numero.de.exclamacoes)
+
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
+INTERPRETAÇÃO:
+
+### Pergunta 3. Ver proporção da quantidade de letras maiúsculas pra cada nível de insatisfação em relação a ANAC e INSS
+
+Para a lexico_op30 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes_l_op30, aes(x=polaridade_normalizada, y=numero.de.capslock, colour=orgao))
+    +geom_point() 
+    +labs(title="Quantidade de letras em caixa alta por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de palavras em caixa alta")
+    +facet_grid(orgao ~ .)
+)
+cor_anac <- cor(reclamacoes_l_op30_anac$polaridade_normalizada, 
+                reclamacoes_l_op30_anac$numero.de.capslock)
+cor_inss <- cor(reclamacoes_l_op30_inss$polaridade_normalizada, 
+                reclamacoes_l_op30_inss$numero.de.capslock)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
+INTERPRETAÇÃO;
+
+Para a lexico_sent 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+(ggplot(reclamacoes_l_sent, aes(x=polaridade_normalizada, y=numero.de.capslock, colour=orgao))
+    +geom_point() 
+    +labs(title="Quantidade de letras em caixa alta por grau de insatisfação", x="Grau de insatisfação geral", y="Quantidade de palavras em caixa alta")
+    +facet_grid(orgao ~ .)
+)
+cor_anac <- cor(reclamacoes_l_sent_anac$polaridade_normalizada, 
+                reclamacoes_l_sent_anac$numero.de.capslock)
+cor_inss <- cor(reclamacoes_l_sent_inss$polaridade_normalizada, 
+                reclamacoes_l_sent_inss$numero.de.capslock)
+mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
+colnames(mat) <- c("cor_anac", "cor_inss")
+mat
+```
+
+INTERPRETAÇÃO;
+
+Ver diferença entre os 2 léxicos.
 
 ###Como avaliar a eficácia dos métodos?  
 Uma medida interessante da eficiência desses métodos é calcular a soma dos erros ao quadrado (SSE) considerando o que o método definiu como a polaridade_normalizada e o que a avaliação humana definiu como a insatisfação.
-SSE de cada léxico
 
 ```{r}
+#vuvuzela 
 reclamacoes %>% 
     ggplot(aes(x = sentimento_op30, y = sentimento_sent)) + 
     geom_abline(slope = 1, intercept = 0, color = "grey") + 
-    geom_count(alpha = .7) 
+    geom_count(alpha = .7)
 ```
 
 ```{r}
@@ -88,20 +227,28 @@ reclamacoes_l %>%
     # geom_boxplot() + 
     facet_wrap(~ lexico)
 ```
-
+INTERPRETAÇÃO
 
 ## Há relação entre o léxico e o erro?
 
 Agora um modelo para responder sua pergunta.
 
 ```{r}
-#Cria variável dummy para preditor categórico
-reclamacoes_l = reclamacoes_l %>% mutate(lexico.dummy = if_else(lexico == "sentimento_sent", 1, 0))
-#Você precisa entender o que fez acima para interpretar sua regressão
-#Você pode também criar uma variável dummy para o órgao (se anac ou inss)
+lm_op30_anac = lm(insatisfacao ~ palavras + numero.de.capslock + numero.de.exclamacoes, data=reclamacoes_l_op30_anac)
+#tidy(lm1, conf.int = TRUE, conf.level = 0.95)
+glance(lm_op30_anac)
 
-# ggpairs(reclamacoes_l %>% select(<selecione as colulas que vc quer usar aqui>))
-# lm1 = lm(<seu modelo>)
+lm_op30_inss = lm(insatisfacao ~ palavras + numero.de.capslock + numero.de.exclamacoes, data=reclamacoes_l_op30_inss)
+#tidy(lm1, conf.int = TRUE, conf.level = 0.95)
+glance(lm_op30_inss)
+
+lm_sent_anac = lm(insatisfacao ~ palavras + numero.de.capslock + numero.de.exclamacoes, data=reclamacoes_l_sent_anac)
+#tidy(lm1, conf.int = TRUE, conf.level = 0.95)
+glance(lm_sent_anac)
+
+lm_sent_inss = lm(insatisfacao ~ palavras + numero.de.capslock + numero.de.exclamacoes, data=reclamacoes_l_sent_inss)
+#tidy(lm1, conf.int = TRUE, conf.level = 0.95)
+glance(lm_sent_inss)
 ```
 
 **Dica** - o texto de resultado que queremos produzir é algo como: 
