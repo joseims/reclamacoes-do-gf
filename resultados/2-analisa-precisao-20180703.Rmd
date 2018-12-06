@@ -102,7 +102,7 @@ mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
 colnames(mat) <- c("cor_anac", "cor_inss")
 View(mat)
 ```
-INTERPRETAÇÃO:
+Com os resultados obtidos percebe-se que a relação entre o tamanho da reclamação e o grau de insatisfação não é tão alta ou até mesmo clara. Para o INSS, por exemplo, reclamações de nível 5 de insatisfação tiveram menos que 1000 caracteres, enquanto uma boa quantidade com nível 3 de reclamação teve um tamanho maior. Para a ANAC por sua vez alguns pontos poderiam indicar uma correlação um pouco maior, mas os demais, de menor grau de insatisfação, vão contra à essa hipótese. Várias reclamações de grau 3 ultrapassaram os 1000 caracteres.
 
 Léxico sentimento_sent - Veremos a correlação entre o tamanho da reclamação e a grau de instatisfação com esse léxico
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -121,7 +121,7 @@ colnames(mat) <- c("cor_anac", "cor_inss")
 View(mat)
 ```
 
-INTERPRETAÇÃO
+A quantidade de exclamações não necessariamente influencia no nível de insatisfação da reclamação. Para ambos os orgãos as reclamações de nível 3 são as que mais tem exclamações. Apesar de haver mais exclamações em reclamações avaliadas com 4 ou 5 do que com 1 ou 2, essa métrica não seria muito útil para a análise. 
 ### Pergunta 2. Ver proporção da quantidade de exclamações pra cada nível de insatisfação em relação a ANAC e INSS
 
 Para a lexico_op30 
@@ -142,7 +142,7 @@ mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
 colnames(mat) <- c("cor_anac", "cor_inss")
 mat
 ```
-INTERPRETAÇÃO:
+Já para esse léxico, os dados indicam uma certa aleatoriedade para o ANAC e para o INSS a quantidade de exclamação sobe até o grau de insatisfação 3 quando começa a cair drasticamente chegando a 0 nos prŕoximos graus. É evidente, mais uma vez, que não é uma métrica relevante.
 
 Para léxico_sent 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -162,8 +162,7 @@ mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
 colnames(mat) <- c("cor_anac", "cor_inss")
 mat
 ```
-INTERPRETAÇÃO:
-
+Aqui tem-se um resultado interessante. Pouquíssimas reclamações, para ambos os orgãos, tem muitas palavras em caixa alta e um grau de insatisfação mínimo. A maior concentração da métrica avaliada acontece nas reclamações de grau 3 e 4 com uma pequena queda naquelas que obtiveram um grau de nível 5. Dessa forma, a quantidade de palavras em caixa alta pode ajudar a estimar o nível de insatisfação. 
 ### Pergunta 3. Ver proporção da quantidade de letras maiúsculas pra cada nível de insatisfação em relação a ANAC e INSS
 
 Para a lexico_op30 
@@ -181,7 +180,7 @@ mat <- matrix(c(cor_anac, cor_inss), nrow=1, ncol=2)
 colnames(mat) <- c("cor_anac", "cor_inss")
 mat
 ```
-INTERPRETAÇÃO;
+Para esse léxico a métrica se mantém de forma parecida ao anterior o que convence um pouco mais sobre a utilidade da mesma.
 
 Para a lexico_sent 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -199,7 +198,7 @@ colnames(mat) <- c("cor_anac", "cor_inss")
 mat
 ```
 
-INTERPRETAÇÃO;
+Apesar da diferença visual da avaliação dos dois léxicos ambos forneceram resultados que nos fizeram chegar nas mesmas conclusões, ou seja, convergiram de forma satisfatória.
 
 Ver diferença entre os 2 léxicos.
 
@@ -237,7 +236,7 @@ reclamacoes_l %>%
     # geom_boxplot() + 
     facet_wrap(~ lexico)
 ```
-INTERPRETAÇÃO
+As maiores concentrações de pontos indicam um erro intermediário para ambos os léxicos. Esses pontos porém são distrubuídos de forma parecida à medida que o grau de insatisfação aumenta, ou seja, eles tendem a ficar na mesma faixa de valores, mesmo com a evolução do léxico. Isso indica uma relação baixa entre o erro e o léxico.
 
 ## Há relação entre o léxico e o erro?
 
