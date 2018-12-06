@@ -206,7 +206,6 @@ Ver diferença entre os 2 léxicos.
 Uma medida interessante da eficiência desses métodos é calcular a soma dos erros ao quadrado (SSE) considerando o que o método definiu como a polaridade_normalizada e o que a avaliação humana definiu como a insatisfação.
 
 ```{r}
-#vuvuzela 
 sent <- reclamacoes_l_sent %>% 
     select(id,polaridade_normalizada)
 colnames(sent) <- c("etc","id","sent")
